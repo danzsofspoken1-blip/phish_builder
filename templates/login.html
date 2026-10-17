@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login — PhishBuilder</title>
+<style>
+  :root {
+    --bg: #0f1117; --card: #1a1d27; --border: #2a2e3b;
+    --text: #e4e6ed; --muted: #8b90a0; --accent: #6366f1; --danger: #ef4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 40px 36px; width: 100%; max-width: 380px;
+  }
+  .logo { font-weight: 700; font-size: 20px; text-align: center; margin-bottom: 8px; }
+  .logo span { color: var(--accent); }
+  .sub { text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 28px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  input {
+    width: 100%; padding: 12px 14px; background: var(--bg);
+    border: 1px solid var(--border); border-radius: 8px; color: var(--text);
+    font-size: 15px; margin-bottom: 18px; outline: none;
+  }
+  input:focus { border-color: var(--accent); }
+  button {
+    width: 100%; padding: 12px; background: var(--accent); color: #fff;
+    border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  button:hover { background: #4f46e5; }
+  .error {
+    background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.3);
+    color: var(--danger); padding: 10px 14px; border-radius: 8px;
+    font-size: 13px; margin-bottom: 16px; text-align: center;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">Phish<span>Builder</span></div>
+    <p class="sub">Admin only</p>
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
+    <form method="POST">
+      <label>Password</label>
+      <input type="password" name="password" required autofocus placeholder="Masukkan password admin">
+      <button type="submit">Masuk</button>
+    </form>
+  </div>
+</body>
+</html>
